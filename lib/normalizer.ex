@@ -75,17 +75,16 @@ defmodule Normalizer do
   The return is a normalized map, in case of success, or a map with each
   erroring key and a description, in case of failure.
 
-  ### Types
+  ## Types
 
   Types can be one of:
   * **Primitives**: `:string`, `:number`, `:boolean`.
   * **Parseable values**: `:datetime`.
   * **Maps**: a nested schema for a nested map.
   * **Lists**: one-element lists that contain any of the other types.
-  * **Tuples**: two-element tuples where the first element is one of the other
-                types, and the second element a keyword list of options.
+  * **Tuples**: two-element tuples where the first element is one of the other types, and the second element a keyword list of options.
 
-  #### Primitives
+  ### Primitives
 
   **Strings** are somewhat of a catch all that ensures anything but lists and
   maps are converted to strings:
@@ -110,7 +109,7 @@ defmodule Normalizer do
       iex> Normalizer.normalize(%{"key" => "false"}, %{key: :boolean})
       {:ok, %{key: false}}
 
-  #### Parseable Values
+  ### Parseable Values
 
   Only `:datetime` is supported right now.
 
@@ -125,7 +124,7 @@ defmodule Normalizer do
       ...> )
       {:ok, %{key: {~U[2020-02-10T23:00:00Z], 3600}}}
 
-  #### Maps
+  ### Maps
 
   Nested schemas are supported:
 
@@ -135,7 +134,7 @@ defmodule Normalizer do
       ...> )
       {:ok, %{key: %{age: 42}}}
 
-  #### Lists
+  ### Lists
 
   Lists are represented in the schema by a single-element list:
 
@@ -147,7 +146,7 @@ defmodule Normalizer do
 
   We can normalize lists of any one of the other types.
 
-  ### Options
+  ## Options
 
   Per-value options can be specified by passing a two-element tuple in the type
   specification. The three available options are `:required`, `:default`, and
