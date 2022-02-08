@@ -51,6 +51,16 @@ defmodule NormalizerTest do
                %{created: "expected datetime (missing_offset)"}
     end
 
+    test "normalizes dates" do
+      schema = %{created: :date}
+
+      assert normalize!(%{"created" => "2020-12-30"}, schema) ==
+               %{created: ~D[2020-12-30]}
+
+      assert fail_normalize!(%{"created" => "2020-12-30T12:00:00Z"}, schema) ==
+               %{created: "expected date (invalid_format)"}
+    end
+
     test "enforces required params" do
       schema = %{name: {:string, required: true}, sign: {:string, required: true}}
       result = fail_normalize!(%{}, schema)
