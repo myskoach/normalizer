@@ -79,7 +79,7 @@ defmodule Normalizer do
 
   Types can be one of:
   * **Primitives**: `:string`, `:number`, `:boolean`.
-  * **Parseable values**: `:datetime`.
+  * **Parseable values**: `:datetime`, `:date`.
   * **Maps**: a nested schema for a nested map.
   * **Lists**: one-element lists that contain any of the other types.
   * **Tuples**: two-element tuples where the first element is one of the other types, and the second element a keyword list of options.
@@ -111,10 +111,13 @@ defmodule Normalizer do
 
   ### Parseable Values
 
-  Only `:datetime` is supported right now.
+  Only `:datetime` and `:date` are supported right now.
 
       iex> Normalizer.normalize(%{"key" => "2020-02-11T00:00:00+0100"}, %{key: :datetime})
       {:ok, %{key: ~U[2020-02-10T23:00:00Z]}}
+
+      iex> Normalizer.normalize(%{"key" => "2020-02-11"}, %{key: :date})
+      {:ok, %{key: ~D[2020-02-11]}}
 
   The offset can be extracted as well by passing the `with_offset` option:
 
@@ -253,6 +256,14 @@ defmodule Normalizer do
     case DateTime.from_iso8601(value) do
       {:ok, datetime, offset} -> {:ok, {datetime, offset}}
       {:error, error} -> {:error, "expected datetime (#{error})"}
+    end
+  end
+
+  # Convert dates:
+  defp convert_type(value, :date) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> {:ok, date}
+      {:error, error} -> {:error, "expected date (#{error})"}
     end
   end
 

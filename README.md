@@ -50,7 +50,7 @@ Add `normalizer` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:normalizer, "~> 0.1.0"}
+    {:normalizer, "~> 0.2.0"}
   ]
 end
 ```
