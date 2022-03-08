@@ -39,6 +39,8 @@ defmodule Normalizer do
   See `Normalizer.normalize/2` for more details.
   """
 
+  alias Normalizer.MissingValue
+
   @type value_type :: atom() | [atom()] | map()
 
   @type value_options :: [
@@ -161,7 +163,7 @@ defmodule Normalizer do
       {:ok, %{key: nil}}
 
       iex> Normalizer.normalize(%{"key" => nil}, %{key: {:number, required: true}})
-      {:error, %{key: "required number"}}
+      {:error, %{key: "required number, got nil"}}
 
       iex> Normalizer.normalize(%{}, %{key: {:number, required: true}})
       {:error, %{key: "required number"}}
@@ -188,9 +190,12 @@ defmodule Normalizer do
   defp apply_schema(params, schema) do
     for {key, value_schema} <- schema, reduce: %{normalized: %{}, errors: %{}} do
       %{normalized: normalized, errors: errors} ->
-        value = Map.get(params, Atom.to_string(key))
+        value = Map.get(params, Atom.to_string(key), %MissingValue{})
 
         case normalize_value(value, value_schema) do
+          {:ok, %MissingValue{}} ->
+            %{normalized: normalized, errors: errors}
+
           {:ok, normalized_value} ->
             %{normalized: Map.put(normalized, key, normalized_value), errors: errors}
 
@@ -212,6 +217,10 @@ defmodule Normalizer do
   # Return nil for all types if value is nil:
   defp convert_type(nil, _type),
     do: {:ok, nil}
+
+  # Pass-through for a missing value:
+  defp convert_type(%MissingValue{}, _type),
+    do: {:ok, %MissingValue{}}
 
   # Convert strings:
   defp convert_type(value, :string) when is_binary(value),
@@ -301,9 +310,15 @@ defmodule Normalizer do
   end
 
   defp apply_option(nil, type, :required, true),
+    do: {:error, "required #{type_string(type)}, got nil"}
+
+  defp apply_option(%MissingValue{}, type, :required, true),
     do: {:error, "required #{type_string(type)}"}
 
   defp apply_option(nil, _type, :default, value),
+    do: {:ok, value}
+
+  defp apply_option(%MissingValue{}, _type, :default, value),
     do: {:ok, value}
 
   defp apply_option(datetime_with_offset, :datetime, :with_offset, true),

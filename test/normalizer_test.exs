@@ -105,15 +105,20 @@ defmodule NormalizerTest do
       schema = %{langs: {[:string], required: true}}
       assert normalize!(%{"langs" => ["pt", nil]}, schema) == %{langs: ["pt", nil]}
       assert fail_normalize!(%{}, schema) == %{langs: "required string list"}
-      assert fail_normalize!(%{"langs" => nil}, schema) == %{langs: "required string list"}
+
+      assert fail_normalize!(%{"langs" => nil}, schema) ==
+               %{langs: "required string list, got nil"}
 
       # Sanity check:
       assert normalize!(%{"langs" => ["en", "pt"]}, schema) == %{langs: ["en", "pt"]}
 
       schema = %{langs: {[{:string, required: true}], required: true}}
 
-      assert fail_normalize!(%{"langs" => ["a", nil]}, schema) == %{langs: "required string list"}
-      assert fail_normalize!(%{"langs" => nil}, schema) == %{langs: "required string list"}
+      assert fail_normalize!(%{"langs" => ["a", nil]}, schema) ==
+               %{langs: "required string, got nil list"}
+
+      assert fail_normalize!(%{"langs" => nil}, schema) ==
+               %{langs: "required string list, got nil"}
 
       # Sanity check:
       assert normalize!(%{"langs" => ["pt", "en"]}, schema) == %{langs: ["pt", "en"]}
@@ -181,6 +186,11 @@ defmodule NormalizerTest do
                  }
                ]
              }
+    end
+
+    test "ignores missing keys (doesn't set to nil)" do
+      schema = %{age: :number, name: :string}
+      assert normalize!(%{"age" => 42}, schema) == %{age: 42}
     end
   end
 
